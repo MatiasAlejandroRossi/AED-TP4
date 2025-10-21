@@ -1,9 +1,11 @@
 import clase
+import pickle
+import os
 
 
-def calcular_comision(envio):
-    m = envio.monto
-    alg = envio.comision
+def calcular_comision(monto, algoritmo):
+    m = monto
+    alg = algoritmo
     c = 0
 
     if alg == 1:
@@ -54,7 +56,9 @@ def calcular_impuesto(envio, base):
 
 
 def monto_final(envio):
-    com = calcular_comision(envio)
+    monto = int(envio.monto_nominal)
+    algoritmo = int(envio.algoritmo_comision)
+    com = calcular_comision(monto,algoritmo)
     base = envio.monto - com
     imp = calcular_impuesto(envio, base)
     final_origen = base - imp
@@ -140,8 +144,68 @@ def mostrar(v):
         # print("r1.2:", v[-1])
 
 
+def promedio_comisiones(v):
+    c = [0] * 5  # contador de envios por moneda de origen...
+    a = [0] * 5  # acumulador de comisiones por moneda de origen...
+    for envio in v:
+        tipo_moneda = envio.obtener_codigo_moneda_origen()  # tipo de moneda del envio...
+        c[tipo_moneda - 1] += 1  # incrementar 1 el contador de este tipo de moneda...
+        monto = int(envio.monto_nominal)
+        algoritmo = int(envio.algoritmo_comision)
+        comision = calcular_comision(monto, algoritmo)
+        a[tipo_moneda - 1] += comision  # acumular comision segun tipo moneda...
+        # calcular promedio...
+    prom = [0] * 5  # arreglo de promedios...
+    for i in range(5):
+        prom[i] = a[i] / c[i]  # calculo de promedios por cada tipo de moneda...
+    return prom
+
+
+def filtrar_envios(v):
+    # promedio de comisiones cobradas...
+    prom = promedio_comisiones(v)
+    filtrados = []
+    for envio in v:
+        monto = int(envio.monto_nominal)
+        algoritmo = int(envio.algoritmo_comision)
+        comision = calcular_comision(monto, algoritmo)
+        tipo_moneda = envio.obtener_codigo_moneda_origen()
+        if prom[tipo_moneda - 1] < comision:
+            filtrados.append(envio)
+    return filtrados
+
+
+def crear_archivo_binario(fd, v):
+    """  ==> PARTE 1 <==
+        Crear un archivo binario que contenga todos aquellos envíos del vector cuya comisión supere 
+        al promedio de comisiones cobradas para su moneda de origen. """
+    envios_filtrados = filtrar_envios(v)
+    m = open(fd, "wb")  # crear archivo...
+    if envios_filtrados:
+        pickle.dump(envios_filtrados, m)  # alamcenar dentro del archivo binario...
+
+
+def mostrar_archivo_binario(fd):
+    flag = os.path.exists(fd)
+    # verificar si existe el archivo...
+    if not flag:
+        print("El archivo no fue cargado.")
+        return
+    
+    m = open(fd, "rb")
+    tam = os.path.getsize(fd)
+        # verificar que termino de comparar... 
+    while m.tell() < tam:
+        envios = pickle.load(m)  # mostrar archivo...
+
+    for envio in envios:
+            print(envio.__str__())
+    m.close()
+
+
 def principal():
     v = []  # inicializar arreglo...
+    fd = "archivos.dat"
     op = -1  # forzar primera vuelta...
     while op != 0:
         op = menu()  # menu de control del programa...
@@ -159,7 +223,12 @@ def principal():
             mostrar(v)
 
         elif op == 2:  # opcion 2 (Generar Archivo)...
-            pass
+            """  ==> PARTE 1 <==
+            Crear un archivo binario que contenga todos aquellos envíos del vector cuya comisión supere 
+            al promedio de comisiones cobradas para su moneda de origen. """
+            crear_archivo_binario(fd, v)
+            mostrar_archivo_binario(fd)
+
         
         elif op == 3:  # opcion 3 (Buscar Envio)...
             pass
