@@ -36,34 +36,34 @@ def calcular_comision(monto, algoritmo):
     return c
 
 
-def calcular_impuesto(envio, base):
-    alg = envio.impositivo
+def calcular_impuesto(v, base):
+    alg_imp = v.algoritmo_impositivo
     imp = 0
 
-    if alg == 1:
+    if alg_imp == 1:
         if base <= 300000:
             imp = 0
         if base > 300000:
             imp = 0.25 * (base - 300000)
-    elif alg == 2:
+    elif alg_imp == 2:
         if base < 50000:
             imp = 50
         if base >= 50000:
             imp = 100
-    elif alg == 3:
+    elif alg_imp == 3:
         imp = 0.03 * base
     return imp
 
 
-def monto_final(envio):
-    monto = int(envio.monto_nominal)
-    algoritmo = int(envio.algoritmo_comision)
-    com = calcular_comision(monto,algoritmo)
-    base = envio.monto - com
-    imp = calcular_impuesto(envio, base)
+def monto_final(v):
+    monto = int(v.monto_nominal)
+    alg_com = int(v.algoritmo_comision)
+    com = calcular_comision(monto, alg_com)
+    base = monto - com
+    imp = calcular_impuesto(v, base)
     final_origen = base - imp
-    final_pago = final_origen * envio.tasa
-    return com, imp, final_pago
+    final_pago = final_origen * float(v.tasa)
+    return final_pago
 
  
 def menu():
@@ -203,6 +203,87 @@ def mostrar_archivo_binario(fd):
     m.close()
 
 
+def buscar(v):
+    id = input("Ingrese identificación del destinatario a buscar: ")
+    n = len(v)
+    izq, der = 0, n - 1
+    encontrado = False
+
+    while izq <= der:
+        c = (izq + der) // 2
+        if v[c].identificacion_destinatario == id:
+            encontrado = True
+            pos = c
+            break
+        elif v[c].identificacion_destinatario < id:
+            der = c - 1   # porque está ordenado en forma descendente
+        else:
+            izq = c + 1
+
+    if encontrado:
+        # Convertimos a float por si viene como string
+        monto_original = int(v[pos].monto_nominal)
+        print("Monto nominal antes de la modificacion:", monto_original)
+
+        # Aumentamos un 17%
+        nuevo_monto = monto_original * 1.17
+
+        # Redondeamos a la centena más próxima
+        nuevo_monto = round(nuevo_monto / 100) * 100
+
+        v[pos].monto_nominal = int(nuevo_monto)
+        print("Monto nominal actualizado:", v[pos].monto_nominal)
+    else:
+        print("No se encontro el envio buscado: 0")
+        print("No se encontro el envio buscado: 0")
+
+
+def mayores(v):
+    """Almacenar en una matriz el Envío con mayor monto final, para cada combinación posible de 
+    moneda origen / moneda de pago.
+    r.4.1: Mostrar para cada combinación posible el código (y solo el código) del envío 
+    almacenado en cada casillero. """
+    # matriz combinaciones posibles moneda origen-pago...
+    m = [
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+    ]
+    # 1 - determinar mayor monto final para cada combinacion...
+    final_mayor = 25 * [0]  # venctor de acumulacion de montos finales...
+    for envio in v:  # recorres los envios...
+        identificador_pago = envio.obtener_identificador_pago()
+        final_envio = monto_final(envio)
+        moneda_origen = envio.obtener_codigo_moneda_origen()
+        moneda_destino = envio.obtener_codigo_moneda_destino()
+
+        for i in range(5):  # filas...
+            for j in range(5):  # columnas...
+                if moneda_origen == i + 1:  # moneda origen n == fila moneda de origen n... 
+                    if moneda_destino == j + 1:  # moneda destino n == columna moneda destino n...
+                        if final_mayor[i + j] < final_envio:  # si monto final de esa fila y columna < monto final del envio...
+                            final_mayor[i + j] = final_envio
+                if final_mayor[i + j] == final_envio:
+                    m[i][j] = identificador_pago
+    for i in range(5):
+        for j in range(5):
+            if final_mayor[i + j] != 0:
+                print(m[i][j])
+
+
+
+
+
+
+
+
+
+    # 2 - alamacenar CODIGO de envio con mayor monto fianl...
+    # 3 - mostrar codigo para cada combinacion posible...
+
+
 def principal():
     v = []  # inicializar arreglo...
     fd = "archivos.dat"
@@ -231,10 +312,10 @@ def principal():
 
         
         elif op == 3:  # opcion 3 (Buscar Envio)...
-            pass
+            buscar(v)
 
         elif op == 4:  # opcion 4 (Mayores por Combinacion de Moneda)...
-            pass
+            mayores(v)
 
 
 if __name__ == "__main__":
