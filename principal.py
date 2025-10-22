@@ -269,8 +269,8 @@ def mayores(v):
                     m[i][j] = identificador_pago
     for i in range(5):
         for j in range(5):
-            if final_mayor[i + j] != 0:
-                print(m[i][j])
+            if final_mayor[i + j] > 0:
+                print(final_mayor[i + j], m[i][j])
 
 
 
@@ -309,7 +309,6 @@ def principal():
             al promedio de comisiones cobradas para su moneda de origen. """
             crear_archivo_binario(fd, v)
             mostrar_archivo_binario(fd)
-
         
         elif op == 3:  # opcion 3 (Buscar Envio)...
             buscar(v)
