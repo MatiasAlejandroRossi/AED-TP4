@@ -243,45 +243,19 @@ def mayores(v):
     moneda origen / moneda de pago.
     r.4.1: Mostrar para cada combinación posible el código (y solo el código) del envío 
     almacenado en cada casillero. """
-    # matriz combinaciones posibles moneda origen-pago...
-    m = [
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-    ]
-    # 1 - determinar mayor monto final para cada combinacion...
-    final_mayor = 25 * [0]  # venctor de acumulacion de montos finales...
-    for envio in v:  # recorres los envios...
-        identificador_pago = envio.obtener_identificador_pago()
-        final_envio = monto_final(envio)
-        moneda_origen = envio.obtener_codigo_moneda_origen()
-        moneda_destino = envio.obtener_codigo_moneda_destino()
+    for origen in range(1, 6):
+        for destino in range(1, 6):
+            mayor_mf = None
+            codigo_mayor = 0
+            for envio in v:
+                if envio.obtener_codigo_moneda_origen() == origen and envio.obtener_codigo_moneda_destino() == destino:
+                    mf = monto_final(envio)
+                    if mayor_mf is None or mf > mayor_mf:
+                        mayor_mf = mf
+                        codigo_mayor = envio.obtener_identificador_pago()
 
-        for i in range(5):  # filas...
-            for j in range(5):  # columnas...
-                if moneda_origen == i + 1:  # moneda origen n == fila moneda de origen n... 
-                    if moneda_destino == j + 1:  # moneda destino n == columna moneda destino n...
-                        if final_mayor[i + j] < final_envio:  # si monto final de esa fila y columna < monto final del envio...
-                            final_mayor[i + j] = final_envio
-                if final_mayor[i + j] == final_envio:
-                    m[i][j] = identificador_pago
-    for i in range(5):
-        for j in range(5):
-            if final_mayor[i + j] > 0:
-                print(final_mayor[i + j], m[i][j])
-
-
-
-
-
-
-
-
-
-    # 2 - alamacenar CODIGO de envio con mayor monto fianl...
-    # 3 - mostrar codigo para cada combinacion posible...
+            if codigo_mayor != 0:
+                print(codigo_mayor)
 
 
 def principal():
