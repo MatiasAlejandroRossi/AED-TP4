@@ -258,6 +258,25 @@ def mayores(v):
                 print(codigo_mayor)
 
 
+def mostrar_mayor_comision_por_moneda(v):
+    mayores = [None] * 5
+    mayores_com = [0] * 5
+
+    for envio in v:
+        tipo = envio.obtener_codigo_moneda_origen()
+        monto = int(envio.monto_nominal)
+        alg = int(envio.algoritmo_comision)
+        com = calcular_comision(monto, alg)
+
+        if mayores[tipo - 1] is None or com > mayores_com[tipo - 1]:
+            mayores[tipo - 1] = envio
+            mayores_com[tipo - 1] = com
+
+    for i in range(5):
+        if mayores[i] is not None:
+            print("r2.2:", mayores[i].obtener_identificador_pago())
+
+
 def principal():
     v = []  # inicializar arreglo...
     fd = "archivos.dat"
@@ -283,6 +302,8 @@ def principal():
             al promedio de comisiones cobradas para su moneda de origen. """
             crear_archivo_binario(fd, v)
             mostrar_archivo_binario(fd)
+
+            mostrar_mayor_comision_por_moneda(v)
         
         elif op == 3:  # opcion 3 (Buscar Envio)...
             buscar(v)
